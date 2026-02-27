@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 
+import json
 from itertools import islice
 from load_datasets import EVQADataset
+from utils.tools.retriever import Retriever
 
 # Never move this before the os environ update, otherwise the model loading will fail because it won't find the models in the specified cache directory
 import torch
@@ -84,17 +86,66 @@ def perform_inference(image, question):
     )
 
     response = processor.batch_decode(
-        generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
+        generated_ids[:, len(inputs.input_ids[0]) :],
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False,
     )[0]
 
-    return response
+    return json.loads(response)
 
 
-# Step 3: get dataset
+def perform_inference_with_context(image, question, context):
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a multimodal assistant. Use the provided context to answer the question accurately.",
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},
+                {
+                    "type": "text",
+                    "text": f"Context:\n{context}\n\nQuestion: {question}",
+                },
+            ],
+        },
+    ]
+
+    text = processor.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+    inputs = processor(
+        text=[text],
+        images=[image],
+        videos=None,
+        padding=True,
+        return_tensors="pt",
+        truncation=True,
+    ).to(model.device)
+
+    generated_ids = model.generate(**inputs, max_new_tokens=512, use_cache=True)
+    return processor.batch_decode(
+        generated_ids[:, len(inputs.input_ids[0]) :],
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False,
+    )[0]
+
+
+# Step 3: get dataset and initialize retriever
 evqa_dataset = EVQADataset()
+retriever = Retriever(5)
 
 for evqa_sample in islice(evqa_dataset, 1):
     # print(evqa_sample["question"], evqa_sample["image"])
     response = perform_inference(evqa_sample["image"], evqa_sample["question"])
     print("Question:", evqa_sample["question"])
     print("Model Response:", response)
+
+    if "Retriever" in response["selected_tool"]:
+        print("The model correctly selected the Retriever tool for an EVQA query.")
+        context = retriever.retrieve(evqa_sample["dataset_image_ids"])
+        response_with_context = perform_inference_with_context(
+            evqa_sample["image"], evqa_sample["question"], context
+        )
+        print("Response with Context:", response_with_context)
