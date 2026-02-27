@@ -1,5 +1,44 @@
 #! /usr/bin/env python
 
+# This script demonstrates a complete end-to-end
+# inference pipeline for the EVQA task using the
+# Qwen2.5-VL-7B model. Here's the step-by-step breakdown of the process
+# (pseudocode format):
+#
+# LOAD model Qwen2.5-VL-7B + processor
+# LOAD EVQA dataset
+# LOAD Retriever (knowledge base + google lens data)
+#
+# FOR each sample in dataset:
+#
+#     ┌─────────────────────────────────────────┐
+#     │  STEP 1 — ROUTING                       │
+#     │  INPUT:  image + question               │
+#     │  PROMPT: router prompt                  │
+#     │  OUTPUT: JSON { selected_tool, ... }    │
+#     └─────────────────────────────────────────┘
+#                         │
+#               selected_tool == "Retriever"?
+#                         │
+#                        YES
+#                         │
+#     ┌─────────────────────────────────────────┐
+#     │  STEP 2 — TOOL CALL (Retriever)         │
+#     │  INPUT:  dataset_image_id               │
+#     │  1. Find URLs in google_lens_data       │
+#     │  2. Retrieve texts from Wikipedia KB    │
+#     │  OUTPUT: context (concatenated text)    │
+#     └─────────────────────────────────────────┘
+#                         │
+#     ┌─────────────────────────────────────────┐
+#     │  STEP 3 — FINAL INFERENCE               │
+#     │  INPUT:  image + question + context     │
+#     │  PROMPT: "Use the context to answer"    │
+#     │  OUTPUT: final answer                   │
+#     └─────────────────────────────────────────┘
+#
+#     PRINT final answer
+
 import json
 from itertools import islice
 from load_datasets import EVQADataset
