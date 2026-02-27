@@ -1,5 +1,6 @@
 # project specific items
 MLLM_challenge
+data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
