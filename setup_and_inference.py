@@ -14,7 +14,7 @@ os.environ.update(env_vars)
 # Never move this before the os environ update, otherwise the model loading will fail because it won't find the models in the specified cache directory
 import torch
 from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
-
+  
 # Step 2: Load the Model and Processor
 model_name = "Qwen/Qwen2.5-VL-7B-Instruct"
 
