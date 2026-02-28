@@ -89,7 +89,7 @@ if __name__ == "__main__":
     
     # image_path = "/leonardo_scratch/large/userexternal/fcocchi0/rag_mlmm/dataset/iNaturalist_2021/val/06214_Plantae_Tracheophyta_Liliopsida_Liliales_Smilacaceae_Smilax_bona-nox/09dd9c22-8cbc-4b19-bbdd-1003986c048c.jpg" # Replace with your image path
     image_path = "/leonardo/home/usertrain/a08trc0u/Vision_Challenge/data/amber_disc/images/AMBER_1.jpg" # Replace with your image path
-    question = "sun. blue sky"  # Replace with your question
+    question = "sky"  # Replace with your question
 # [
 #     {
 #         "id": 1005,
